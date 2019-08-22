@@ -97,6 +97,7 @@ class PodLauncher(LoggingMixin):
         return self._monitor_pod(pod, get_logs)
 
     @tenacity.retry(
+        stop=tenacity.stop_after_attempt(1000),
         wait=tenacity.wait_exponential(multiplier=1, max=10),
         reraise=True
     )
@@ -155,7 +156,8 @@ class PodLauncher(LoggingMixin):
                 container='base',
                 follow=True,
                 tail_lines=10,
-                _preload_content=False
+                _preload_content=False,
+                _request_timeout=20
             )
         except BaseHTTPError as e:
             raise AirflowException(
@@ -169,7 +171,7 @@ class PodLauncher(LoggingMixin):
     )
     def read_pod(self, pod):
         try:
-            return self._client.read_namespaced_pod(pod.name, pod.namespace)
+            return self._client.read_namespaced_pod(pod.name, pod.namespace, _request_timeout=20)
         except BaseHTTPError as e:
             raise AirflowException(
                 'There was an error reading the kubernetes API: {}'.format(e)
