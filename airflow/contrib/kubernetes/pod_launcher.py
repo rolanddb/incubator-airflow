@@ -96,6 +96,10 @@ class PodLauncher(LoggingMixin):
 
         return self._monitor_pod(pod, get_logs)
 
+    @tenacity.retry(
+        wait=tenacity.wait_exponential(multiplier=1, max=10),
+        reraise=True
+    )
     def _monitor_pod(self, pod, get_logs):
         # type: (Pod, bool) -> Tuple[State, Optional[str]]
 
