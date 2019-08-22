@@ -69,7 +69,7 @@ class PodLauncher(LoggingMixin):
     def delete_pod(self, pod):
         try:
             self._client.delete_namespaced_pod(
-                pod.name, pod.namespace, body=client.V1DeleteOptions())
+                pod.name, pod.namespace, body=client.V1DeleteOptions(), _request_timeout=20)
         except ApiException as e:
             # If the pod is already deleted
             if e.status != 404:
@@ -98,11 +98,12 @@ class PodLauncher(LoggingMixin):
 
     @tenacity.retry(
         stop=tenacity.stop_after_attempt(1000),
-        wait=tenacity.wait_exponential(multiplier=1, max=10),
+        wait=tenacity.wait_exponential(),
         reraise=True
     )
     def _monitor_pod(self, pod, get_logs):
         # type: (Pod, bool) -> Tuple[State, Optional[str]]
+        self.log.debug('Pod [%s] started, entering monitoring phase\n', pod.name)
 
         if get_logs:
             logs = self.read_pod_logs(pod)
@@ -183,7 +184,8 @@ class PodLauncher(LoggingMixin):
                                  container=self.kube_req_factory.SIDECAR_CONTAINER_NAME,
                                  command=['/bin/sh'], stdin=True, stdout=True,
                                  stderr=True, tty=False,
-                                 _preload_content=False)
+                                 _preload_content=False,
+                                 _request_timeout=20)
         try:
             result = self._exec_pod_command(
                 resp, 'cat {}/return.json'.format(self.kube_req_factory.XCOM_MOUNT_PATH))

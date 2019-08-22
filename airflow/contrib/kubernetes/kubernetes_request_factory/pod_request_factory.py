@@ -39,7 +39,6 @@ spec:
           add:
           - SYS_PTRACE
         procMount: Default
-
   restartPolicy: Never
     """
 
