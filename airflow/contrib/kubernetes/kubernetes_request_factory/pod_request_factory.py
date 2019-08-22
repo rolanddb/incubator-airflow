@@ -34,6 +34,12 @@ spec:
     - name: base
       image: airflow-worker:latest
       command: ["/usr/local/airflow/entrypoint.sh", "/bin/bash sleep 25"]
+      securityContext:
+        capabilities:
+          add:
+          - SYS_PTRACE
+        procMount: Default
+
   restartPolicy: Never
     """
 
