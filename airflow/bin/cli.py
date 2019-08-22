@@ -72,6 +72,16 @@ from airflow.www_rbac.app import cached_appbuilder
 from sqlalchemy.orm import exc
 import six
 
+# added for debugging scheduler
+import http.client; http.client.HTTPConnection.debuglevel = 1
+import logging
+logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
+
 api.load_auth()
 api_module = import_module(conf.get('cli', 'api_client'))  # type: Any
 api_client = api_module.Client(api_base_url=conf.get('cli', 'endpoint_url'),
